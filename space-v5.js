@@ -1,0 +1,15 @@
+(()=>{'use strict';
+const $=id=>document.getElementById(id);
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const selectFacts=p=>p?{name:p.name,brand:p.brand,barcode:p.code,grade:p.grade,nova:p.nova,ingredients:p.ingredients,additives:p.additives,additivesDeclared:p.additivesN,nutrients:p.nutri,source:'Open Food Facts'}:null;
+const request=async(question,context)=>{const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),38000);try{const r=await fetch('/api/ai/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({question,context}),signal:controller.signal});const j=await r.json();if(!r.ok)throw Error(j.detail||j.error||'Erreur IA');return j.answer||'Aucune réponse générée.';}finally{clearTimeout(timer);}};
+let busy=false;
+function sync(){const api=window.SpaceNutriV5;const p=api?.getFeatured();const ab=api?.getCompare()||[];if($('v5-ai-product'))$('v5-ai-product').disabled=!p||busy;if($('v5-ai-compare'))$('v5-ai-compare').disabled=!ab[0]||!ab[1]||busy;}
+window.addEventListener('space:nutri-update',sync);
+async function execute(kind){const api=window.SpaceNutriV5;const compared=api?.getCompare()||[];const p=api?.getFeatured();const out=$(kind==='product'?'v5-ai-product-result':'v5-ai-compare-result');const context=kind==='product'?{product:selectFacts(p)}:{productA:selectFacts(compared[0]),productB:selectFacts(compared[1])};if(kind==='product'&&!p||kind==='compare'&&(!compared[0]||!compared[1]))return;
+ busy=true;sync();out.hidden=false;out.textContent='Analyse en cours…';try{const question=kind==='product'?'Analyse ce produit alimentaire uniquement à partir des données fournies. Donne 3 rubriques : points nutritionnels, additifs/ingrédients, limites des données. Mentionne explicitement les valeurs manquantes, explique que le nombre d’additifs ne démontre pas un risque. Pas de diagnostic ni de notes inventées.':'Compare ces deux produits à base identique (100g/100ml lorsque connu), cite seulement des valeurs présentes, explique les limites et propose un choix nuancé. Ne fabrique ni score ni donnée, évite de conclure sur les risques des additifs à partir de leur nombre.';out.textContent=await request(question,context);}catch(e){out.textContent='Analyse indisponible : '+e.message;}finally{busy=false;sync();}}
+$('v5-ai-product')?.addEventListener('click',()=>execute('product'));
+$('v5-ai-compare')?.addEventListener('click',()=>execute('compare'));
+const labBtn=document.createElement('button');labBtn.className='chip-btn';labBtn.textContent='Laboratoire scientifique';labBtn.type='button';labBtn.addEventListener('click',()=>{document.querySelector('[data-tab="journal"]')?.click();$('v5-laboratoire')?.scrollIntoView({behavior:'smooth'});});document.querySelector('.nutri-inline-actions')?.appendChild(labBtn);
+window.SpaceDailyV5={analyze:execute};sync();
+})();

@@ -1,0 +1,11 @@
+{
+  "name": "space-daily-v5",
+  "version": "5.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
