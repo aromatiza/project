@@ -1,0 +1,18 @@
+{
+  "name": "Space Daily — Nutrition & bien-être",
+  "short_name": "Space Daily",
+  "description": "Suivi personnel de nutrition, santé et journal",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#eef1f8",
+  "theme_color": "#007aff",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
